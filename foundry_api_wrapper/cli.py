@@ -86,9 +86,19 @@ def _resolve_prompt(args: argparse.Namespace) -> str:
     return args.prompt
 
 
+def _configure_utf8_output() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
+
+
 def main() -> int:
     parser = _build_parser()
     args = parser.parse_args()
+
+    _configure_utf8_output()
 
     try:
         base_url, api_key, model = _get_config()
