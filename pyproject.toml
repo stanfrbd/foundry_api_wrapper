@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "foundry-api-wrapper"
+version = "0.1.0"
+description = "Minimal CLI wrapper for Azure Foundry chat completions"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "openai>=1.30.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+foundry-api = "foundry_api_wrapper.cli:main"
+
+[tool.setuptools]
+packages = ["foundry_api_wrapper"]
