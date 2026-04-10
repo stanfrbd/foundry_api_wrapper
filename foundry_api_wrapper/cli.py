@@ -1,5 +1,6 @@
 import argparse
 import os
+from pathlib import Path
 import sys
 
 from dotenv import load_dotenv
@@ -48,11 +49,15 @@ def _build_parser() -> argparse.ArgumentParser:
         prog="foundry-api",
         description="Minimal CLI wrapper for Azure Foundry chat completions.",
     )
-    parser.add_argument(
+    prompt_group = parser.add_mutually_exclusive_group(required=True)
+    prompt_group.add_argument(
         "-p",
         "--prompt",
-        required=True,
-        help="Prompt to send to the model.",
+        help="Prompt to send to the model. Use '-' to read from stdin.",
+    )
+    prompt_group.add_argument(
+        "--prompt-file",
+        help="Read the prompt from a UTF-8 text file.",
     )
     parser.add_argument(
         "--json",
@@ -71,6 +76,16 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _resolve_prompt(args: argparse.Namespace) -> str:
+    if args.prompt_file:
+        return Path(args.prompt_file).read_text(encoding="utf-8")
+
+    if args.prompt == "-":
+        return sys.stdin.read()
+
+    return args.prompt
+
+
 def main() -> int:
     parser = _build_parser()
     args = parser.parse_args()
@@ -81,6 +96,8 @@ def main() -> int:
         print(str(exc), file=sys.stderr)
         return 2
 
+    prompt = _resolve_prompt(args)
+
     if args.model:
         model = args.model
 
@@ -89,12 +106,12 @@ def main() -> int:
     if args.raw:
         completion = client.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": args.prompt}],
+            messages=[{"role": "user", "content": prompt}],
         )
         print(completion.model_dump_json(indent=2))
         return 0
 
-    messages = [{"role": "user", "content": args.prompt}]
+    messages = [{"role": "user", "content": prompt}]
     completion_kwargs = {}
 
     if args.json:
@@ -106,7 +123,10 @@ def main() -> int:
                     "Do not add markdown fences, explanations, or extra text."
                 ),
             },
-            {"role": "user", "content": args.prompt},
+            {
+                "role": "user",
+                "content": prompt,
+            },
         ]
         completion_kwargs["response_format"] = {"type": "json_object"}
 

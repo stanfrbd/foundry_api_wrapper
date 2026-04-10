@@ -38,6 +38,22 @@ Prompt:
 foundry-api -p "Explain zero trust in one sentence"
 ```
 
+If your prompt contains quotes, JSON, or multiple lines, pass it through stdin or a file instead of escaping it in the shell:
+
+```bash
+@'
+Return a JSON object with keys "city" and "country".
+Include the raw JSON schema below:
+{"type":"object","properties":{"city":{"type":"string"}}}
+'@ | foundry-api -p -
+```
+
+Or use a file:
+
+```bash
+foundry-api --prompt-file .\prompt.txt
+```
+
 JSON output only:
 
 ```bash
